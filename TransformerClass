@@ -1,0 +1,21 @@
+import UIKit
+
+
+// 1. Subclass from `NSSecureUnarchiveFromDataTransformer`
+@objc(QRUIColorValueTransformer)
+final class QRUIColorValueTransformer: NSSecureUnarchiveFromDataTransformer {
+
+    /// The name of the transformer. This is the name used to register the transformer using `ValueTransformer.setValueTrandformer(_"forName:)`.
+    static let name = NSValueTransformerName(rawValue: String(describing: UIColor.self))
+
+    // 2. Make sure `UIColor` is in the allowed class list.
+    override static var allowedTopLevelClasses: [AnyClass] {
+        return [UIColor.self]
+    }
+
+    /// Registers the transformer.
+    public static func register() {
+        let transformer = QRUIColorValueTransformer()
+        ValueTransformer.setValueTransformer(transformer, forName: name)
+    }
+}
