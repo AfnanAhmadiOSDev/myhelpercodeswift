@@ -1,0 +1,176 @@
+import UIKit
+import CoreData
+
+class DataManager: NSObject {
+    static let shared = DataManager()
+    private override init() { }
+
+    private func delete_all_records(of TypeQKey: QRKeys) -> Bool {
+        print("delete_all_records : of \(TypeQKey.rawValue)")
+        
+        let appDelegateRef = UIApplication.shared.delegate as! AppDelegate
+        //context from app delegate
+        let context = appDelegateRef.persistentContainer.viewContext
+        //fetch data
+        let request = NSFetchRequest<NSFetchRequestResult>(entityName: TypeQKey.rawValue)
+        
+        do{
+            let results = try context.fetch(request)
+            
+            for dataObj in results {
+                if let dataObjj = dataObj as? NSManagedObject {
+                    context.delete(dataObjj)
+                }
+            }
+            
+            do{
+                try context.save()
+                print("\(TypeQKey.rawValue) records delete successful")
+                return true
+            } catch {
+                print("Failed to delete \(TypeQKey.rawValue) records")
+                return false
+            }
+            
+        } catch {
+            print("Failed to load data for \(TypeQKey.rawValue) delete")
+            return false
+        }
+    }//end method
+    
+    
+    //new
+    func update_data(of typeKey: QRKeys, updateObj_id: String, logoInfo: String?, bgFrameInfo: String?, qrColor: UIColor?) -> Bool {
+        print("update_data: of \(typeKey.rawValue)")
+        let appDelegateRef = UIApplication.shared.delegate as! AppDelegate
+        //context from app delegate
+        let context = appDelegateRef.persistentContainer.viewContext
+        
+        //fetch data
+        let request = NSFetchRequest<NSFetchRequestResult>(entityName: typeKey.rawValue)
+        request.predicate = NSPredicate(format: "\(TextKeys.id.rawValue) = %@", "\(updateObj_id)")
+        request.returnsObjectsAsFaults = false
+        
+        do{
+            let result = try context.fetch(request)
+            print("\(typeKey.rawValue) result.count : \(result.count)")
+            
+            if result.count > 0, let obj_data = result[0] as? NSManagedObject {
+                obj_data.setValue(logoInfo, forKey: ClipboardKeys.qrLogo.rawValue)
+                obj_data.setValue(bgFrameInfo, forKey: ClipboardKeys.qrBgFrame.rawValue)
+                obj_data.setValue(qrColor, forKey: ClipboardKeys.qrColor.rawValue)
+            } else {
+                print("no object in \(typeKey.rawValue) result")
+                return false
+            }
+            
+            do{
+                try context.save()
+                print("\(typeKey.rawValue) Updated Data save successful")
+                return true
+            } catch {
+                print("Failed saving updated \(typeKey.rawValue) data")
+                return false
+            }
+        } catch {
+            print("Failed to load \(typeKey.rawValue) data")
+            return false
+        }
+    }//end method
+
+
+}
+
+
+
+
+//MARK: Clipboard QR data methods
+extension DataManager {
+    func save_clipboard_data(dataObj: ClipboardQR) -> Bool{
+        print("save_clipboard_data")
+        let appDelegateRef = UIApplication.shared.delegate as! AppDelegate
+        //context from app delegate
+        let context = appDelegateRef.persistentContainer.viewContext
+        //create and entry and new records
+        let entity = NSEntityDescription.entity(forEntityName: QRKeys.QRClipboard.rawValue, in: context)
+        
+        if let entity = entity {
+            let newRecord = NSManagedObject(entity: entity, insertInto: context)
+            newRecord.setValue(dataObj.dateTime, forKey: ClipboardKeys.dateTime.rawValue)
+            newRecord.setValue(dataObj.id, forKey: ClipboardKeys.id.rawValue)
+            newRecord.setValue(dataObj.isBookmarked, forKey: ClipboardKeys.isBookmarked.rawValue)
+            newRecord.setValue(dataObj.myOrigin, forKey: ClipboardKeys.myOrigin.rawValue)
+            newRecord.setValue(dataObj.originalStr, forKey: ClipboardKeys.originalStr.rawValue)
+            newRecord.setValue(dataObj.originalType, forKey: ClipboardKeys.originalType.rawValue)
+            newRecord.setValue(dataObj.text, forKey: ClipboardKeys.text.rawValue)
+            newRecord.setValue(dataObj.simpleDateTime, forKey: ClipboardKeys.simpleDateTime.rawValue)
+            newRecord.setValue(dataObj.qrColor, forKey: ClipboardKeys.qrColor.rawValue)
+            newRecord.setValue(dataObj.qrLogo, forKey: ClipboardKeys.qrLogo.rawValue)
+            newRecord.setValue(dataObj.qrBgFrame, forKey: ClipboardKeys.qrBgFrame.rawValue)
+            
+            //save the data
+            do{
+                try context.save()
+                print("Clipboard Data save successful")
+                return true
+            }catch{
+                print("Failed saving text data")
+                return false
+            }
+        }
+        else {
+            print("unable to get text entity")
+            return false
+        }
+    }//end method
+    
+    func load_clipboard_data() -> Bool {
+        print("load_clipboard_data")
+        let appDelegateRef = UIApplication.shared.delegate as! AppDelegate
+        //context from app delegate
+        let context = appDelegateRef.persistentContainer.viewContext
+        
+        //fetch data
+        let request = NSFetchRequest<NSFetchRequestResult>(entityName: QRKeys.QRClipboard.rawValue)
+        request.returnsObjectsAsFaults = false
+        
+        do{
+            let result = try context.fetch(request)
+            //print("result.count : \(result.count)")
+            
+            var tempList: [QRData] = [QRData]()
+            
+            for data in result as! [NSManagedObject]{
+                //print(data)
+                let myId_fetch = data.value(forKey: ClipboardKeys.id.rawValue) as? String
+                let myDataTime_fetch = data.value(forKey: ClipboardKeys.dateTime.rawValue) as? String
+                let myIsBookmarked_fetch = data.value(forKey: ClipboardKeys.isBookmarked.rawValue) as? Bool
+                let myMyOrigin_fetch = data.value(forKey: ClipboardKeys.myOrigin.rawValue) as? String
+                let myOriginalStr_fetch = data.value(forKey: ClipboardKeys.originalStr.rawValue) as? String
+                let myOriginalType_fetch = data.value(forKey: ClipboardKeys.originalType.rawValue) as? String
+                let myText_fetch = data.value(forKey: ClipboardKeys.text.rawValue) as? String
+                let mySimpleDateTime_fetch = data.value(forKey: ClipboardKeys.simpleDateTime.rawValue) as? String
+                
+                let myQRColor_fetch = data.value(forKey: ClipboardKeys.qrColor.rawValue) as? UIColor
+                let myQRBgFrame_fetch = data.value(forKey: ClipboardKeys.qrBgFrame.rawValue) as? String
+                let myQRLogo_fetch = data.value(forKey: ClipboardKeys.qrLogo.rawValue) as? String
+                
+                if let clipboardObj = ClipboardQR.init(idP: myId_fetch, textP: myText_fetch, dateTimeP: myDataTime_fetch, originalStrP: myOriginalStr_fetch, originalTypeP: myOriginalType_fetch, myOriginP: myMyOrigin_fetch, simpleDateTimeP: mySimpleDateTime_fetch, qrColorP: myQRColor_fetch, qrBgFrameP: myQRBgFrame_fetch, qrLogoP: myQRLogo_fetch) {
+                    clipboardObj.isBookmarked = myIsBookmarked_fetch
+                    
+                    if let qr_dataObj = QRData.init(obj_idP: myHelperMethods.getRandomUUIDStr(), obj_typeP: QRKeys.QRClipboard, obj_dateObjectP: myHelperMethods.get_qrDate_obj2(dateStr: myDataTime_fetch), obj_dateStrP: myDataTime_fetch, obj_originP: myMyOrigin_fetch, obj_isBookmarkedP: myIsBookmarked_fetch, obj_simpleDateTimeP: mySimpleDateTime_fetch, clipboard_objP: clipboardObj) {//itemTypeP: .QRClipboard,
+                        
+                        tempList.append(qr_dataObj)
+                    } else {print("can't create qr_dataObj")}
+                } else {print("can't create ClipboardQR object")}
+            }//end for loop
+            
+            add_to_qrDataList(listToAdd: tempList)
+        } catch {
+            print("Failed to load clipboard data")
+            return false
+        }
+        return false
+    }//end method
+    
+}//end extension
