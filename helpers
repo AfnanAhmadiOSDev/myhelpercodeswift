@@ -1,0 +1,473 @@
+import UIKit
+
+extension UILabel {
+    func scalableFontSize(baseSize: CGFloat) -> CGFloat {
+        //Current runable device/simulator width find
+        let bounds = UIScreen.main.bounds
+        let width = bounds.size.width
+        
+        // basewidth you have set like your base storybord is IPhoneSE this storybord width 320px.
+        let baseWidth: CGFloat = 320
+        
+        // "14" font size is defult font size
+        let fontSize = baseSize * (width / baseWidth)
+        
+        return fontSize
+    }//end method
+    
+    
+    func get_numberOfLines() -> Int {
+        //self.layoutIfNeeded()
+        let rect = CGSize(width: self.bounds.width, height: CGFloat.greatestFiniteMagnitude)
+        
+        let labelSize = NSString(string: self.text ?? "").boundingRect(with: rect, options: .usesLineFragmentOrigin, attributes: [NSAttributedString.Key.font: self.font as Any], context: nil)
+        
+        return Int(ceil(CGFloat(labelSize.height) / self.font.lineHeight))
+    }//end method
+    
+    
+    var maxNumberOfLines: Int {
+        //self.layoutIfNeeded()
+        let maxSize = CGSize(width: frame.size.width, height: CGFloat(MAXFLOAT))
+        let text = (self.text ?? "") as NSString
+        let textHeight = text.boundingRect(with: maxSize, options: .usesLineFragmentOrigin, attributes: [.font: self.font as Any], context: nil).height
+        let lineHeight = font.lineHeight
+        return Int(ceil(textHeight / lineHeight))
+    }
+    
+    var numberOfVisibleLines: Int {
+        //self.layoutIfNeeded()
+        //let maxSize = CGSize(width: frame.size.width, height: CGFloat(MAXFLOAT))
+        //let textHeight = sizeThatFits(maxSize).height
+        //let lineHeight = font.lineHeight
+        //return Int(ceil(textHeight / lineHeight))
+        let zone = CGSize(width: intrinsicContentSize.width, height: CGFloat(MAXFLOAT))
+        let fittingHeight = Float(self.sizeThatFits(zone).height)
+        return lroundf(fittingHeight / Float(font.lineHeight))
+    }
+    
+}//end extension
+
+
+extension UILabel {
+    func decideTextDirection () {
+        //print("decideTextDirection : \(self.text)")
+        if let textP = self.text, !textP.isEmpty {
+            //print("in condition")
+            let tagScheme = [NSLinguisticTagScheme.language]
+            let tagger = NSLinguisticTagger(tagSchemes: tagScheme, options: 0)
+            tagger.string = self.text
+            let lang = tagger.tag(at: 0, scheme: NSLinguisticTagScheme.language,
+                                       tokenRange: nil, sentenceRange: nil)
+            
+            if lang == .hebrew || lang == .arabic {
+                self.textAlignment = NSTextAlignment.right
+            } else {
+                self.textAlignment = NSTextAlignment.left
+            }
+        }
+    }//end method
+    
+    func decideTextDirection (_ langCode: String) {
+        //if let textP = self.text, !textP.isEmpty {
+            //print("langCode : \(langCode)")
+            if langCode == NSLinguisticTag.hebrew.rawValue || langCode == NSLinguisticTag.arabic.rawValue {
+                //print("right")
+                
+                self.textAlignment = NSTextAlignment.right
+            } else {
+                //print("left")
+                self.textAlignment = NSTextAlignment.left
+            }
+        //}
+    }//end method
+    
+    func underLineText() {
+        guard let text = text else { return }
+        let textRange = NSMakeRange(0, text.count)
+        let attributedText = NSMutableAttributedString(string: text)
+        attributedText.addAttribute(NSAttributedString.Key.underlineStyle , value: NSUnderlineStyle.single.rawValue, range: textRange)
+        // Add other attributes if needed
+        self.attributedText = attributedText
+    }//end method
+    
+}//end extension
+
+
+
+
+
+extension UITextView {
+    func decideTextDirection () {
+        if !self.text.isEmpty {
+            let tagScheme = [NSLinguisticTagScheme.language]
+            let tagger = NSLinguisticTagger(tagSchemes: tagScheme, options: 0)
+            tagger.string = self.text
+            let lang = tagger.tag(at: 0, scheme: NSLinguisticTagScheme.language,
+                                  tokenRange: nil, sentenceRange: nil)
+            
+            if lang == .hebrew || lang == .arabic {
+                self.textAlignment = NSTextAlignment.right
+            } else {
+                self.textAlignment = NSTextAlignment.left
+            }
+        }
+    }//end method
+    
+}//end extension
+extension NSLinguisticTag {
+    static let hebrew = NSLinguisticTag("he")
+    static let arabic = NSLinguisticTag("ar")
+}//end extension
+
+
+
+
+
+
+
+extension UIViewController {
+    func presentControllerFromLeft(_ viewControllerToPresent: UIViewController) {
+        let transition = CATransition()
+        transition.duration = 0.5
+        transition.type = CATransitionType.moveIn
+        transition.subtype = CATransitionSubtype.fromLeft
+        transition.timingFunction = CAMediaTimingFunction(name:CAMediaTimingFunctionName.easeInEaseOut)
+        view.window!.layer.add(transition, forKey: kCATransition)
+        present(viewControllerToPresent, animated: false, completion: nil)
+    }//end method
+    
+    func dismissFromRight() {
+        let transition = CATransition()
+        transition.duration = 0.5
+        transition.type = CATransitionType.reveal
+        transition.subtype = CATransitionSubtype.fromRight
+        transition.timingFunction = CAMediaTimingFunction(name:CAMediaTimingFunctionName.easeInEaseOut)
+        view.window!.layer.add(transition, forKey: kCATransition)
+        dismiss(animated: true, completion: nil)
+    }//end method
+    
+    func present_fullScreen(viewController: UIViewController, animated: Bool) {
+        viewController.modalPresentationStyle = .fullScreen
+        self.present(viewController, animated: animated, completion: nil)
+    }//end method
+    
+}//end extension
+
+
+
+
+
+
+
+
+extension UIImage {
+    func getCropRatio() -> CGFloat {
+        let widthRatio = CGFloat(self.size.width / self.size.height)
+        
+        return widthRatio
+    }//end method
+    
+    //rotate method in my extension
+    func rotate_exts(radians: Float) -> UIImage? {
+        var newSize = CGRect(origin: CGPoint.zero, size: self.size).applying(CGAffineTransform(rotationAngle: CGFloat(radians))).size
+        // Trim off the extremely small float value to prevent core graphics from rounding it up
+        newSize.width = floor(newSize.width)
+        newSize.height = floor(newSize.height)
+
+        UIGraphicsBeginImageContextWithOptions(newSize, false, self.scale)
+        let context = UIGraphicsGetCurrentContext()!
+
+        // Move origin to middle
+        context.translateBy(x: newSize.width/2, y: newSize.height/2)
+        // Rotate around middle
+        context.rotate(by: CGFloat(radians))
+        // Draw the image at its center
+        self.draw(in: CGRect(x: -self.size.width/2, y: -self.size.height/2, width: self.size.width, height: self.size.height))
+
+        let newImage = UIGraphicsGetImageFromCurrentImageContext()
+        UIGraphicsEndImageContext()
+
+        return newImage
+    }
+}//end extension
+
+
+
+extension UIImage.Orientation {
+    func showAsString() {
+        switch self {
+        case .down:
+            print("orientation : down")
+            break
+        case .downMirrored:
+        print("orientation : downMirrored")
+            break
+        case .left:
+        print("orientation : left")
+            break
+        case .leftMirrored:
+        print("orientation : leftMirrored")
+            break
+        case .right:
+        print("orientation : right")
+            break
+        case .rightMirrored:
+        print("orientation : rightMirrored")
+            break
+        case .up:
+        print("orientation : up")
+            break
+        case .upMirrored:
+        print("orientation : upMirrored")
+            break
+        @unknown default:
+            print("unknown type")
+        }
+    }//end method
+}//end extension
+
+
+
+
+
+
+
+
+extension UIButton {
+    func animateScaleOnInput(){
+        UIButton.animate(withDuration: 0.2, animations: {
+            self.transform = CGAffineTransform(scaleX: 0.975, y: 0.96)
+        }) { (finish) in
+            UIButton.animate(withDuration: 0.2, animations: {
+                self.transform = CGAffineTransform.identity
+            })
+        }
+    }//end method
+    
+    func springAnimation2(){
+        self.transform = CGAffineTransform(scaleX: 0.1, y: 0.1)
+        
+        UIView.animate(withDuration: 2.0,
+                       delay: 0,
+                       usingSpringWithDamping: 0.2,
+                       initialSpringVelocity: 6.0,
+                       options: .allowUserInteraction,
+                       animations:
+            { [weak self] in
+                self?.transform = .identity
+            },
+                       completion: nil)
+    }//end method
+    
+    
+    func upDownAnimation(reapeatCount: Int, delayTime: TimeInterval){
+        
+        UIView.animate(withDuration: 0.1, delay: delayTime, usingSpringWithDamping: 1, initialSpringVelocity: 1, options: UIView.AnimationOptions.curveEaseIn, animations: {
+            self.center.y += 10
+        }, completion: nil)
+        
+        UIView.animate(withDuration: 0.1, delay: 0.1, usingSpringWithDamping: 1, initialSpringVelocity: 1, options: UIView.AnimationOptions.curveEaseIn, animations: {
+            self.center.y -= 20
+        }, completion: nil)
+        
+        //UIView.animate(withDuration: 0.1, delay: 0.2, usingSpringWithDamping: 1, initialSpringVelocity: 1, options: UIView.AnimationOptions.curveEaseIn, animations: {
+        //self.center.y += 10
+        //}, completion: nil)
+        UIView.animate(withDuration: 0.1, delay: 0.2, usingSpringWithDamping: 1, initialSpringVelocity: 1, options: UIView.AnimationOptions.curveEaseIn, animations: {
+            self.center.y += 10
+        }, completion: { (finished) in
+            //
+        })
+    }
+    
+}//end extension
+
+
+
+
+
+
+
+
+
+extension String {
+    func widthOfString(usingFont font: UIFont) -> CGFloat {
+        let fontAttributes = [NSAttributedString.Key.font: font]
+        let size = self.size(withAttributes: fontAttributes)
+        return size.width
+    }
+    
+    func heightOfString(usingFont font: UIFont) -> CGFloat {
+        let fontAttributes = [NSAttributedString.Key.font: font]
+        let size = self.size(withAttributes: fontAttributes)
+        return size.height
+    }
+    
+    func sizeOfString(usingFont font: UIFont) -> CGSize {
+        let fontAttributes = [NSAttributedString.Key.font: font]
+        return self.size(withAttributes: fontAttributes)
+    }
+    
+    
+    func isValidUrl() -> Bool {
+        let urlRegEx = "^(https?://)?(www\\.)?([-a-z0-9]{1,63}\\.)*?[a-z0-9][-a-z0-9]{0,61}[a-z0-9]\\.[a-z]{2,6}(/[-\\w@\\+\\.~#\\?&/=%]*)?$"
+//        let urlRegEx = "(\\b(https?|ftp|file)://)?[-A-Za-z0-9+&@#/%?=~_|!:,.;]+[-A-Za-z0-9+&@#/%=~_|]"
+        let urlTest = NSPredicate(format:"SELF MATCHES %@", urlRegEx)
+        let result = urlTest.evaluate(with: self)
+        
+        return result
+    }
+    
+    //"(?:(?:/.be\\|embed\\|v\\|\\?v=|/&v=|\\videos\\)|(?:[\\w+]+#\\w\\\\w(?:\\[\\w]+)?\\\\w\\))([\\w-_]+)"
+    //"(http(s)?:\\/\\/)?(www\\.|m\\.)?youtu(be\\.com|\\.be)(\\/watch\\?([&=a-z]{0,})(v=[\\d\\w]{1,}).+|\\/[\\d\\w]{1,})"
+    func isValid_youtubeURL() -> Bool {
+        let urlRegEx = "(http(s)?:\\/\\/)?(www\\.|m\\.)?youtu(be\\.com|\\.be)(\\/watch\\?([&=a-z]{0,})(v=[\\d\\w]{1,}).+|\\/[\\d\\w]{1,})"
+        let urlTest = NSPredicate(format:"SELF MATCHES %@", urlRegEx)
+        let result = urlTest.evaluate(with: self)
+        
+        return result
+    }//end method
+    
+    func isValidEmail() -> Bool {
+        let emailRegEx = "[A-Z0-9a-z._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,64}"
+        
+        let emailTest = NSPredicate(format:"SELF MATCHES %@", emailRegEx)
+        
+        return emailTest.evaluate(with: self)
+    }
+    
+    func deletingFromLeft(_ prefix: String) -> String {
+        guard self.hasPrefix(prefix) else { return self }
+        return String(self.dropFirst(prefix.count))
+    }
+    
+    func deletingFromRight(_ postfix: String) -> String {
+        let word = "orange"
+        if let index = word.range(of: postfix)?.lowerBound {
+            let substring = word[..<index]                 // "ora"
+            // or  let substring = word.prefix(upTo: index) // "ora"
+            // (see picture below) Using the prefix(upTo:) method is equivalent to using a partial half-open range as the collection’s subscript.
+            // The subscript notation is preferred over prefix(upTo:).
+            
+            let string = String(substring)
+            return string
+        }
+        return self
+    }
+    
+    
+    func hasOnlySpaces() -> Bool {
+        if self.trimmingCharacters(in: .whitespaces).isEmpty {
+            return true
+        } else {
+            return false
+        }
+    }//end method
+    
+    //A function that checks if a string has any numbers
+    func hasOnlyNumbers() -> Bool {
+        var myFlag: Bool = false
+        for character in self {
+            if character.isNumber{
+                myFlag = true
+            } else {
+                myFlag = false
+            }
+        }
+        return myFlag
+    }//end method
+    
+    //A function that checks if a string has any numbers and dot (.)
+    func hasOnlyNumbers_punct() -> Bool {
+        var myFlag: Bool = false
+        for character in self {
+            if character.isNumber || character == "." {
+                myFlag = true
+            } else {
+                myFlag = false
+            }
+        }
+        return myFlag
+    }//end method
+    
+}//end extension
+
+
+
+
+
+
+
+
+
+extension Array {
+    func unique<T:Hashable>(map: ((Element) -> (T)))  -> [Element] {
+        var set = Set<T>() //the unique list kept in a Set for fast retrieval
+        var arrayOrdered = [Element]() //keeping the unique list of elements but ordered
+        for value in self {
+            if !set.contains(map(value)) {
+                set.insert(map(value))
+                arrayOrdered.append(value)
+            }
+        }
+        
+        return arrayOrdered
+    }
+}//end extension
+
+
+
+
+
+
+extension UIScrollView {
+    // Scroll to a specific view so that it's top is at the top our scrollview
+    func scrollToView(view: UIView, animated: Bool) {
+        if let origin = view.superview {
+            // Get the Y position of your child view
+            let childStartPoint = origin.convert(view.frame.origin, to: self)
+            // Scroll to a rectangle starting at the Y of your subview, with a height of the scrollview
+            //self.scrollRectToVisible(CGRect(x:0, y:childStartPoint.y,width: 1,height: self.frame.height), animated: animated)
+            self.setContentOffset(CGPoint(x: 0, y: childStartPoint.y-5), animated: animated)
+        }
+    }//end method
+    
+    // Bonus: Scroll to top
+    func scrollToTop(animated: Bool) {
+        let topOffset = CGPoint(x: 0, y: -contentInset.top)
+        setContentOffset(topOffset, animated: animated)
+    }//end method
+    
+    // Bonus: Scroll to bottom
+    func scrollToBottom() {
+        let bottomOffset = CGPoint(x: 0, y: contentSize.height - bounds.size.height + contentInset.bottom)
+        if(bottomOffset.y > 0) {
+            setContentOffset(bottomOffset, animated: true)
+        }
+    }//end method
+    
+}//end extension
+
+
+
+
+
+extension UISegmentedControl {
+    func setFontSize(fontSize: CGFloat, selectedColor: UIColor, unselectedColor: UIColor) {
+        let normalTextAttributes = [
+            NSAttributedString.Key.foregroundColor: unselectedColor,
+            NSAttributedString.Key.font: UIFont.systemFont(ofSize: fontSize, weight: .semibold)
+        ]
+        
+        let boldTextAttributes = [
+            NSAttributedString.Key.foregroundColor: selectedColor,
+            NSAttributedString.Key.font: UIFont.systemFont(ofSize: fontSize, weight: .semibold)
+        ]
+        
+        self.setTitleTextAttributes(normalTextAttributes, for: .normal)
+        self.setTitleTextAttributes(normalTextAttributes, for: .highlighted)
+        self.setTitleTextAttributes(boldTextAttributes, for: .selected)
+    }//end method
+    
+}//end extension
