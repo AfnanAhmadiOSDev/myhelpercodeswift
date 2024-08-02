@@ -1,0 +1,16 @@
+import Foundation
+
+extension DispatchQueue {
+    ///from extension
+    static func background(_ task: @escaping () -> ()) {
+        DispatchQueue.global(qos: .background).async {
+            task()
+        }
+    }
+    ///from extension
+    static func main(_ task: @escaping () -> ()) {
+        DispatchQueue.main.async {
+            task()
+        }
+    }
+}//end extension
