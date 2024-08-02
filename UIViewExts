@@ -1,0 +1,442 @@
+import UIKit
+
+extension UIView {
+    func getScreenShot() -> UIImage? {
+        if #available(iOS 10.0, *) {
+            let renderer = UIGraphicsImageRenderer(bounds: bounds)
+            return renderer.image { rendererContext in
+                layer.render(in: rendererContext.cgContext)
+            }
+        } else {
+            UIGraphicsBeginImageContext(self.frame.size)
+            self.layer.render(in:UIGraphicsGetCurrentContext()!)
+            let image = UIGraphicsGetImageFromCurrentImageContext()
+            UIGraphicsEndImageContext()
+            
+            if let image = image {
+                if let cgIMage = image.cgImage {
+                    return UIImage(cgImage: cgIMage)
+                }
+                else{
+                    return nil
+                }
+            }
+            else{
+                return nil
+            }
+        }
+    }
+}//end extension
+
+
+extension UIView {
+    /// Remove allSubViews in view
+    func removeAllSubViews() {
+        self.subviews.forEach({ $0.removeFromSuperview() })
+    }
+    
+    /// Remove allSubViews in view
+    func hideAllSubViews() {
+        self.subviews.forEach({ $0.isHidden = true })
+    }
+    
+    
+    ///func addShadow(color shadowColorP: UIColor = UIColor.black.withAlphaComponent(0.3), shadowWidth: CGFloat = 0.0, shadowHeight: CGFloat = 3.0, radius shadowRadiusP: CGFloat = 2.0, opacity shadowOpacityP: Float = 1.0).
+    /// This works only when not using my custom round corners method
+    func addShadow(color shadowColorP: UIColor = UIColor.black.withAlphaComponent(0.3), shadowWidth: CGFloat = 0.0, shadowHeight: CGFloat = 3.0, radius shadowRadiusP: CGFloat = 2.0, opacity shadowOpacityP: Float = 1.0, delayValue: TimeInterval = 0.05){
+        self.addShadow_(shadowColorP: shadowColorP, shadowWidth: shadowWidth, shadowHeight: shadowHeight, shadowRadiusP: shadowRadiusP, shadowOpacityP: shadowOpacityP, delayVal: delayValue)
+    }//end method
+    
+    private func addShadow_(shadowColorP: UIColor, shadowWidth: CGFloat, shadowHeight: CGFloat, shadowRadiusP: CGFloat, shadowOpacityP: Float, delayVal: TimeInterval) {
+        self.perform(#selector(addShadow_delayed(_:)), with: ["shadowColor":shadowColorP, "shadowWidth":shadowWidth, "shadowHeight":shadowHeight, "shadowRadius":shadowRadiusP, "shadowOpacity":shadowOpacityP], afterDelay: delayVal)
+    }//end method
+    
+    @objc private func addShadow_delayed(_ valuesDict: [String:Any]) {
+        if let shadowColor = valuesDict["shadowColor"] as? UIColor,
+            let shadowWidth = valuesDict["shadowWidth"] as? CGFloat,
+            let shadowHeight = valuesDict["shadowHeight"] as? CGFloat,
+            let shadowRadiusP = valuesDict["shadowRadius"] as? CGFloat,
+            let shadowOpacityP = valuesDict["shadowOpacity"] as? Float
+            {
+            
+            self.layer.shadowColor = shadowColor.cgColor
+            self.layer.shadowOffset = CGSize(width: shadowWidth, height: shadowHeight)
+            self.layer.shadowRadius = shadowRadiusP
+            self.layer.shadowOpacity = shadowOpacityP
+            
+            self.layer.masksToBounds = false
+            
+            //self.layer.shadowPath = UIBezierPath(rect: self.bounds).cgPath
+            //self.layer.shouldRasterize = true
+            //self.layer.rasterizationScale = UIScreen.main.scale
+        } else {print("shadow values not found")}
+    }//end method
+    
+    func addShadow_qr_color(shadowColor: UIColor){
+        self.layer.shadowColor = shadowColor.cgColor
+        self.layer.shadowOffset = CGSize(width: 0.0, height: 3.0)
+        self.layer.masksToBounds = false
+        self.layer.shadowRadius = 2.0
+        self.layer.shadowOpacity = 0.1
+    }
+}//end extension
+
+
+
+
+extension UIView {
+    func hideKeyboardWhenTappedAround() {
+        let tap: UITapGestureRecognizer = UITapGestureRecognizer(target: self, action: #selector(UIView.dismissKeyboard))
+        tap.cancelsTouchesInView = false
+        self.addGestureRecognizer(tap)
+    }
+    
+    @objc func dismissKeyboard() {
+        self.endEditing(true)
+    }
+}//end extension
+
+
+
+
+
+
+
+//MARK: round corners work
+enum RoundCorner {
+    case topLeft
+    case topRight
+    case bottomLeft
+    case bottomRight
+    case topRightLeft
+    case bottomRightLeft
+    case topBottomLeft
+    case topLeftBottomRight
+    case topBottomRight
+    case topRightBottomLeft
+    case allCorners
+    
+    case topRight_topLeft_bottomRight
+    case topLeft_topRight_bottomLeft
+}
+
+extension UIView {
+    func roundCorners(corners: RoundCorner, radius: CGFloat, delay_value: Double = 0.00, use_newMethod: Bool = false) {
+        self.layoutIfNeeded()
+        //let delay_value = 0.01
+        
+        switch corners {
+            case .topLeft:
+                if use_newMethod { roundViewCorners_new(radius: radius, cornersToRound: [._topLeft()], delayVal: delay_value) }
+                else { roundViewCorners(radius: radius, cornersToRound: [UIRectCorner.topLeft], delayVal: delay_value) }
+                break
+        case .topRight:
+            if use_newMethod { roundViewCorners_new(radius: radius, cornersToRound: [._topRight()], delayVal: delay_value) }
+            else { roundViewCorners(radius: radius, cornersToRound: [UIRectCorner.topRight], delayVal: delay_value) }
+            break
+        case .bottomLeft:
+            if use_newMethod { roundViewCorners_new(radius: radius, cornersToRound: [._bottomLeft()], delayVal: delay_value) }
+            else { roundViewCorners(radius: radius, cornersToRound: [UIRectCorner.bottomLeft], delayVal: delay_value) }
+            break
+        case .bottomRight:
+            if use_newMethod { roundViewCorners_new(radius: radius, cornersToRound: [._bottomRight()], delayVal: delay_value) }
+            else { roundViewCorners(radius: radius, cornersToRound: [UIRectCorner.bottomRight], delayVal: delay_value) }
+            break
+        case .bottomRightLeft:
+            if use_newMethod { roundViewCorners_new(radius: radius, cornersToRound: [._bottomRight(), ._bottomLeft()], delayVal: delay_value) }
+            else { roundViewCorners(radius: radius, cornersToRound: [UIRectCorner.bottomLeft, UIRectCorner.bottomRight], delayVal: delay_value) }
+            break
+        case .topBottomLeft:
+            if use_newMethod { roundViewCorners_new(radius: radius, cornersToRound: [._topLeft(), ._bottomLeft()], delayVal: delay_value) }
+            else { roundViewCorners(radius: radius, cornersToRound: [UIRectCorner.topLeft, UIRectCorner.bottomLeft], delayVal: delay_value) }
+            break
+        case .topBottomRight:
+            if use_newMethod { roundViewCorners_new(radius: radius, cornersToRound: [._bottomRight(), ._topRight()], delayVal: delay_value) }
+            else { roundViewCorners(radius: radius, cornersToRound: [UIRectCorner.topRight, UIRectCorner.bottomRight], delayVal: delay_value) }
+            break
+        case .topLeftBottomRight:
+            if use_newMethod { roundViewCorners_new(radius: radius, cornersToRound: [._bottomRight(), ._topLeft()], delayVal: delay_value) }
+            else { roundViewCorners(radius: radius, cornersToRound: [UIRectCorner.topLeft, UIRectCorner.bottomRight], delayVal: delay_value) }
+            break
+        case .topRightBottomLeft:
+            if use_newMethod { roundViewCorners_new(radius: radius, cornersToRound: [._topRight(), ._bottomLeft()], delayVal: delay_value) }
+            else { roundViewCorners(radius: radius, cornersToRound: [UIRectCorner.topRight, UIRectCorner.bottomLeft], delayVal: delay_value) }
+            break
+        case .topRightLeft:
+            if use_newMethod { roundViewCorners_new(radius: radius, cornersToRound: [._topRight(), ._topLeft()], delayVal: delay_value) }
+            else { roundViewCorners(radius: radius, cornersToRound: [UIRectCorner.topRight, UIRectCorner.topLeft], delayVal: delay_value) }
+            break
+        case .allCorners:
+            if use_newMethod { roundViewCorners_new(radius: radius, cornersToRound: [._bottomRight(), ._bottomLeft(), ._topRight(), ._topLeft()], delayVal: delay_value) }
+            else { roundViewCorners(radius: radius, cornersToRound: [UIRectCorner.topRight, UIRectCorner.bottomRight, UIRectCorner.topLeft, UIRectCorner.bottomLeft], delayVal: delay_value) }
+            break
+        case .topRight_topLeft_bottomRight:
+            if use_newMethod { roundViewCorners_new(radius: radius, cornersToRound: [._bottomRight(), ._topRight(), ._topLeft()], delayVal: delay_value) }
+            else { roundViewCorners(radius: radius, cornersToRound: [UIRectCorner.topLeft, UIRectCorner.topRight, UIRectCorner.bottomRight], delayVal: delay_value) }
+            break
+        case .topLeft_topRight_bottomLeft:
+            if use_newMethod { roundViewCorners_new(radius: radius, cornersToRound: [._topRight(), ._topLeft(), ._bottomLeft()], delayVal: delay_value) }
+            else { roundViewCorners(radius: radius, cornersToRound: [UIRectCorner.topLeft, UIRectCorner.bottomLeft, UIRectCorner.topRight], delayVal: delay_value) }
+            break
+        }
+    }//end method
+    
+    
+    private func roundViewCorners(radius : CGFloat, cornersToRound: UIRectCorner, delayVal: TimeInterval) {
+        self.perform(#selector(roundViewCorners_delayed(_:)), with: ["radius":radius, "corners":cornersToRound], afterDelay: delayVal)
+    }//end method
+    
+    @objc private func roundViewCorners_delayed(_ valuesDict: [String:Any]) {
+        if let radius = valuesDict["radius"] as? CGFloat {
+            //print("found radius = \(radius)")
+            if let cornersToRound = valuesDict["corners"] as? UIRectCorner {
+                //print(cornersToRound)
+                let maskPath1 = UIBezierPath(roundedRect: bounds,
+                                             byRoundingCorners: cornersToRound,
+                                             cornerRadii: CGSize(width: radius, height: radius))
+                
+                let maskLayer1 = CAShapeLayer()
+                maskLayer1.frame = bounds
+                maskLayer1.path = maskPath1.cgPath
+                layer.mask = maskLayer1
+            } else {print("corners not found")}
+        } else {print("radius not found")}
+    }//end method
+    
+    
+    private func roundViewCorners_new(radius : CGFloat, cornersToRound: CACornerMask, delayVal: TimeInterval) {
+        self.perform(#selector(roundViewCorners_delayed_new(_:)), with: ["radius":radius, "corners":cornersToRound], afterDelay: delayVal)
+    }//end method
+    
+    @objc private func roundViewCorners_delayed_new(_ valuesDict: [String:Any]) {
+        guard let radius = valuesDict["radius"] as? CGFloat else {
+            //print("found radius = \(radius)")
+            return
+        }
+        guard let cornersToRound = valuesDict["corners"] as? CACornerMask else {
+            //print(cornersToRound)
+            return
+        }
+        
+        layer.cornerRadius = radius
+        //layer.borderColor = UIColor.red.cgColor
+        //layer.borderWidth = 1.0
+        layer.maskedCorners = cornersToRound
+    }//end method
+    
+}//end extension
+
+extension CACornerMask {
+    static func _topLeft() -> CACornerMask {return .layerMinXMinYCorner}
+    static func _topRight() -> CACornerMask {return .layerMaxXMinYCorner}
+    static func _bottomLeft() -> CACornerMask {return .layerMinXMaxYCorner}
+    static func _bottomRight() -> CACornerMask {return .layerMaxXMaxYCorner}
+}//end extension
+
+
+
+
+
+
+
+//MARK: underline work
+extension UIView {
+    func addUnderline(_ underLineColor: UIColor, _ addShadow: Bool = false) {
+        let viewUnderLine: UIView = {
+            let vi = UIView()
+            vi.translatesAutoresizingMaskIntoConstraints = false
+            vi.backgroundColor = underLineColor
+            
+            return vi
+        }()
+        
+        self.addSubview(viewUnderLine)
+        viewUnderLine.mcst_bottomCenterOf(parent: self, bottomC: 0, widthM: 1.0, heightC: 1)
+        if addShadow {
+            viewUnderLine.addShadow()
+        }
+    }//end method
+    
+    func addUnderline(_ underLineColor: UIColor, _ widthMultiplier: CGFloat) {
+        let viewUnderLine: UIView = {
+            let vi = UIView()
+            vi.translatesAutoresizingMaskIntoConstraints = false
+            vi.backgroundColor = underLineColor
+            
+            return vi
+        }()
+        
+        self.addSubview(viewUnderLine)
+        viewUnderLine.mcst_bottomCenterOf(parent: self, bottomC: 0, widthM: widthMultiplier, heightC: 1)
+    }//end method
+    
+    func addUnderline(_ underLineColor: UIColor, _ leadingView: UIView, _ trailingView: UIView) {
+        let viewUnderLine: UIView = {
+            let vi = UIView()
+            vi.translatesAutoresizingMaskIntoConstraints = false
+            vi.backgroundColor = underLineColor
+            
+            return vi
+        }()
+        
+        self.addSubview(viewUnderLine)
+        viewUnderLine.leadingAnchor.constraint(equalTo: leadingView.leadingAnchor, constant: 0).isActive = true
+        viewUnderLine.trailingAnchor.constraint(equalTo: trailingView.trailingAnchor, constant: 0).isActive = true
+        
+        viewUnderLine.bottomAnchor.constraint(equalTo: self.bottomAnchor, constant: 0).isActive = true
+        viewUnderLine.heightAnchor.constraint(equalToConstant: 1).isActive = true
+    }//end method
+    
+    func addUnderline(_ underLineColor: UIColor, _ shadowAlphaValue: CGFloat, _ shadowOpacityValue: Float) {
+        let viewUnderLine: UIView = {
+            let vi = UIView()
+            vi.translatesAutoresizingMaskIntoConstraints = false
+            vi.backgroundColor = underLineColor
+            
+            return vi
+        }()
+        
+        self.addSubview(viewUnderLine)
+        viewUnderLine.mcst_bottomCenterOf(parent: self, bottomC: 0, widthM: 1.0, heightC: 1)
+        
+        //viewUnderLine.addShadowToSelf(shadowAlphaValue, shadowOpacityValue)
+    }//end method
+    
+    func addUnderline2(_ underLineColor: UIColor, _ leadingConstant: CGFloat, _ trailingConstant: CGFloat) {
+        let viewUnderLine: UIView = {
+            let vi = UIView()
+            vi.translatesAutoresizingMaskIntoConstraints = false
+            vi.backgroundColor = underLineColor
+            
+            return vi
+        }()
+        
+        self.addSubview(viewUnderLine)
+        viewUnderLine.leadingAnchor.constraint(equalTo: self.leadingAnchor, constant: leadingConstant).isActive = true
+        viewUnderLine.trailingAnchor.constraint(equalTo: self.trailingAnchor, constant: -trailingConstant).isActive = true
+        
+        viewUnderLine.bottomAnchor.constraint(equalTo: self.bottomAnchor, constant: 0).isActive = true
+        viewUnderLine.heightAnchor.constraint(equalToConstant: 1).isActive = true
+    }//end method
+    
+    
+    
+    
+    
+    //MARK: upperline work
+    func addUpperline(_ upperLineColor: UIColor, _ widthMultiplier: CGFloat = 1, heightConst: CGFloat = 1, completion: ((UIView) -> Void)? = nil) {
+        let viewUpperLine: UIView = {
+            let vi = UIView()
+            vi.translatesAutoresizingMaskIntoConstraints = false
+            vi.backgroundColor = upperLineColor
+            return vi
+        }()
+        
+        self.addSubview(viewUpperLine)
+        viewUpperLine.topAnchor.constraint(equalTo: self.topAnchor).isActive = true
+        viewUpperLine.centerXAnchor.constraint(equalTo: self.centerXAnchor).isActive = true
+        viewUpperLine.widthAnchor.constraint(equalTo: self.widthAnchor, constant: widthMultiplier).isActive = true
+        viewUpperLine.heightAnchor.constraint(equalToConstant: heightConst).isActive = true
+        if let completion {
+            completion(viewUpperLine)
+        }
+    }//end method
+    
+//    func addUpperline(_ upperLineColor: UIColor, _ shadowAlphaValue: CGFloat, _ shadowOpacityValue: Float) {
+//        let viewUpperLine: UIView = {
+//            let vi = UIView()
+//            vi.translatesAutoresizingMaskIntoConstraints = false
+//            vi.backgroundColor = upperLineColor
+//            return vi
+//        }()
+//        self.addSubview(viewUpperLine)
+//        viewUpperLine.mcst_topCenterOf(parent: self, topC: 0, widthM: 1.0, heightM: 1)
+//        //viewUpperLine.addShadowToSelf(shadowAlphaValue, shadowOpacityValue)
+//    }//end method
+    
+}//end extension
+
+
+
+//MARK: animations
+extension UIView {
+    func fadeIn(_ duration: TimeInterval = 0.5, delay: TimeInterval = 0.0, completion: @escaping ((Bool) -> Void) = {(finished: Bool) -> Void in}) {
+        UIView.animate(withDuration: duration, delay: delay, options: UIView.AnimationOptions.curveEaseIn, animations: {
+            self.alpha = 1.0
+        }, completion: completion)
+    }//end method
+    
+    func fadeOut(_ duration: TimeInterval = 0.5, delay: TimeInterval = 1.0, completion: @escaping (Bool) -> Void = {(finished: Bool) -> Void in}) {
+        UIView.animate(withDuration: duration, delay: delay, options: UIView.AnimationOptions.curveEaseIn, animations: {
+            self.alpha = 0.3
+        }, completion: completion)
+    }//end method
+    
+    func springAnimation(animDuration: TimeInterval = 1.0, completion: @escaping (Bool) -> Void) {
+        self.transform = CGAffineTransform(scaleX: 0.1, y: 0.1)
+        
+        UIView.animate(withDuration: animDuration,
+                       delay: 0,
+                       usingSpringWithDamping: 0.2,
+                       initialSpringVelocity: 6.0,
+                       options: .allowUserInteraction,
+                       animations:
+            { [weak self] in
+                self?.transform = .identity
+            },
+                       completion: { (completed) in
+                        completion(completed)
+        })
+    }//end method
+    
+    func springAnimation_withoutSprings(animDuration: TimeInterval = 1.0, completion: @escaping (Bool) -> Void) {
+        UIView.animate(withDuration: animDuration, animations: {
+            self.transform = CGAffineTransform(scaleX: 1.6, y: 1.6)
+        }) { (completed) in
+            if completed {
+                UIView.animate(withDuration: animDuration, animations: { [weak self] in
+                    self?.transform = .identity
+                }) { (completed2) in
+                    completion(completed2)
+                }
+            }
+        }
+    }//end method
+    
+    
+    func showConfirmationDialog(alertTitle: String, alertMsg: String, firstTitle: String = "Yes", secondTitle: String = "Cancel", setDestructiveStyle: Bool = false, completion: @escaping (Bool) -> Void) {
+        let alertController = AlertPlusViewController(title: alertTitle, message: alertMsg, preferredStyle: .alert)
+        
+        var ok: UIAlertAction
+        
+        let cancel = UIAlertAction(title: secondTitle, style: .default, handler: { action in
+            //print("delete cancelled")
+            completion(false)
+        })
+        
+        if setDestructiveStyle {
+            ok = UIAlertAction(title: firstTitle, style: .destructive, handler: { action in
+                //print("yes delete the item")
+                DispatchQueue.main.async {
+                    completion(true)
+                }
+            })
+        } else {
+            ok = UIAlertAction(title: firstTitle, style: .default, handler: { action in
+                //print("yes delete the item")
+                DispatchQueue.main.async {
+                    completion(true)
+                }
+            })
+        }
+        
+        alertController.addAction(ok)
+        alertController.addAction(cancel)
+        
+        
+        DispatchQueue.main.async(execute: {
+            alertController.show()
+        })
+    }//end method
+    
+}//end extension
