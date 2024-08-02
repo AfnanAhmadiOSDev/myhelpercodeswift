@@ -440,3 +440,36 @@ extension UIView {
     }//end method
     
 }//end extension
+
+
+
+
+
+extension UIView {
+    func addBlurEffect_(cornerRadius_: CGFloat = 9) -> UIVisualEffectView {
+        // 2
+        let blurEffect = UIBlurEffect(style: .light)
+        // 3
+        let blurView = UIVisualEffectView(effect: blurEffect)
+        // 4
+        blurView.translatesAutoresizingMaskIntoConstraints = false
+        //blurView.backgroundColor = #colorLiteral(red: 0.8173573613, green: 0.8173573613, blue: 0.8173573613, alpha: 1)
+        self.addSubview(blurView)
+        
+        blurView.layer.cornerRadius = cornerRadius_
+        blurView.layer.masksToBounds = true
+        blurView.mcst_allSidesOf(parent: self)
+        
+        // 1
+        let vibrancyEffect = UIVibrancyEffect(blurEffect: blurEffect)
+        // 2
+        let vibrancyView = UIVisualEffectView(effect: vibrancyEffect)
+        vibrancyView.translatesAutoresizingMaskIntoConstraints = false
+        // 3
+        //vibrancyView.contentView.addSubview(container_vi)
+        // 4
+        blurView.contentView.addSubview(vibrancyView)
+        return blurView
+    }//end method
+    
+}//end extension
