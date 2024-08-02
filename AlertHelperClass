@@ -1,0 +1,205 @@
+import UIKit
+
+class AlertPlusViewController: UIAlertController {
+    
+    private var alertWindow: UIWindow?
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+    }
+    
+    override func viewDidDisappear(_ animated: Bool) {
+        super.viewDidDisappear(animated)
+        self.alertWindow?.isHidden = true
+        alertWindow = nil
+    }
+    
+    func show() {
+        self.showAnimated(animated: true)
+    }
+    
+    func showAnimated(animated _: Bool) {
+        
+        let blankViewController = UIViewController()
+        blankViewController.view.backgroundColor = UIColor.clear
+        
+        let window = UIWindow(frame: UIScreen.main.bounds)
+        window.rootViewController = blankViewController
+        window.backgroundColor = UIColor.clear
+        window.windowLevel = UIWindow.Level.alert + 1
+        window.makeKeyAndVisible()
+        self.alertWindow = window
+        
+        blankViewController.present(self, animated: true, completion: nil)
+    }
+    
+    
+    
+    func presentOkayAlertWithError(error: NSError?) {
+        let title = "Error"
+        let message = error?.localizedDescription
+        presentOkayAlertWithTitle(title: title, message: message)
+    }
+    
+    
+    
+    
+}//end method
+
+
+
+extension UIViewController {
+    
+    func showTwoButtonAlert(withTitle title: String, withMessage message:String) {
+        let alertController = AlertPlusViewController(title: title, message: message, preferredStyle: .alert)
+        let ok = UIAlertAction(title: "OK", style: .default, handler: { action in
+        })
+        let cancel = UIAlertAction(title: "Cancel", style: .default, handler: { action in
+        })
+        alertController.addAction(ok)
+        alertController.addAction(cancel)
+        DispatchQueue.main.async(execute: {
+            //            self.present(alert, animated: true)
+            alertController.show()
+        })
+    }//end method
+    
+    func showMessageAlert(withTitle title: String, withMessage message:String) {
+        
+        // create the alert
+        let alertController = AlertPlusViewController(title: title, message: message, preferredStyle: .alert)
+        
+        // add an action (button)
+        alertController.addAction(UIAlertAction(title: AppStrs.global_ok_string.rawValue.l10n(), style: .default, handler: nil))
+        
+        // show the alert
+        //        self.present(alert, animated: true, completion: nil)
+        DispatchQueue.main.async(execute: {
+            //            self.present(alert, animated: true)
+            alertController.show()
+        })
+    }//end method
+    
+    func showThreeButtonAlert(withTitle title: String, withMessage message:String) {
+        
+        // create the alert
+        let alertController = AlertPlusViewController(title: "Notice", message: "Lauching this missile will destroy the entire universe. Is this what you intended to do?", preferredStyle: .alert)
+        
+        // add the actions (buttons)
+        alertController.addAction(UIAlertAction(title: "Remind Me Tomorrow", style: .default, handler: nil))
+        alertController.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
+        alertController.addAction(UIAlertAction(title: "Launch the Missile", style: .destructive, handler: nil))
+        
+        // show the alert
+        DispatchQueue.main.async(execute: {
+            //            self.present(alert, animated: true)
+            alertController.show()
+        })
+        
+    }//end method
+    
+    func presentOkayAlertWithTitle(title: String?, message: String?) {
+        
+        let alertController = AlertPlusViewController(title: title, message: message, preferredStyle: .alert)
+        let okayAction = UIAlertAction(title: "Ok", style: .default, handler: nil)
+        alertController.addAction(okayAction)
+        DispatchQueue.main.async(execute: {
+            //            self.present(alert, animated: true)
+            alertController.show()
+        })
+    }
+    
+    func showAlertMsg(alertTitle: String, alertMsg: String) {
+        let ac = UIAlertController(title: alertTitle, message: alertMsg, preferredStyle: UIAlertController.Style.alert)
+        ac.addAction(UIAlertAction(title: AppStrs.global_ok_string.rawValue.l10n(), style: UIAlertAction.Style.default, handler: nil))
+        
+        if self.view != nil {
+            DispatchQueue.main.async {
+                self.present(ac, animated: true, completion: nil)
+            }
+        }
+    }//end method
+    
+    func showAlertMsg2(alertTitle: String, alertMsg: String) {
+        let ac = UIAlertController(title: alertTitle, message: alertMsg, preferredStyle: UIAlertController.Style.alert)
+        ac.addAction(UIAlertAction(title: AppStrs.global_ok_string.rawValue.l10n(), style: UIAlertAction.Style.default, handler: nil))
+        
+        if self.view != nil {
+            //DispatchQueue.main.async {
+                self.present(ac, animated: true, completion: nil)
+            //}
+        }
+    }//end method
+    
+    
+    
+    func showAlert_withCompletion(alertTitle: String, alertMsg: String, completion: @escaping (Bool) -> Void) {
+        let ac = UIAlertController(title: alertTitle, message: alertMsg, preferredStyle: UIAlertController.Style.alert)
+        //ac.addAction(UIAlertAction(title: "OK", style: UIAlertAction.Style.default, handler: nil))
+        ac.addAction(UIAlertAction(title: AppStrs.global_ok_string.rawValue.l10n(), style: .default, handler: { action in
+            completion(true)
+        }))
+        
+        if self.view != nil {
+            DispatchQueue.main.async {
+                self.present(ac, animated: true, completion: nil)
+            }
+        }
+    }//end method
+    
+    func showAlert_withCompletion_withCancel(alertTitle: String, alertMsg: String, completion: @escaping (Bool) -> Void) {
+        let ac = UIAlertController(title: alertTitle, message: alertMsg, preferredStyle: UIAlertController.Style.alert)
+        //ac.addAction(UIAlertAction(title: "OK", style: UIAlertAction.Style.default, handler: nil))
+        ac.addAction(UIAlertAction(title: AppStrs.global_yes_string.rawValue.l10n(), style: .destructive, handler: { action in
+            completion(true)
+        }))
+        
+        ac.addAction(UIAlertAction(title: AppStrs.global_cancel_string.rawValue.l10n(), style: .default, handler: { action in
+            completion(false)
+        }))
+        
+        if self.view != nil {
+            DispatchQueue.main.async {
+                self.present(ac, animated: true, completion: nil)
+            }
+        }
+    }//end method
+    
+    func showAlert_withCompletion_twoButtons(alertTitle: String, alertMsg: String, firstButtonTitle: String, secondButtonTitle: String, completion: @escaping (Bool) -> Void) {
+        let ac = UIAlertController(title: alertTitle, message: alertMsg, preferredStyle: UIAlertController.Style.alert)
+        //ac.addAction(UIAlertAction(title: "OK", style: UIAlertAction.Style.default, handler: nil))
+        ac.addAction(UIAlertAction(title: firstButtonTitle, style: .default, handler: { action in
+            completion(true)
+        }))
+        
+        ac.addAction(UIAlertAction(title: secondButtonTitle, style: .destructive, handler: { action in
+            completion(false)
+        }))
+        
+        if self.view != nil {
+            DispatchQueue.main.async {
+                self.present(ac, animated: true, completion: nil)
+            }
+        }
+    }//end method
+    
+    
+    func showAlert_withCompletion_withCancel(alertTitle: String, alertMsg: String, firstIsDestructive: Bool = true, firstBtnTitle: String = AppStrs.global_yes_string.rawValue.l10n(), secondBtnTitle: String = AppStrs.global_cancel_string.rawValue.l10n(), completion: @escaping (Bool) -> Void) {
+        let ac = UIAlertController(title: alertTitle, message: alertMsg, preferredStyle: UIAlertController.Style.alert)
+        //ac.addAction(UIAlertAction(title: "OK", style: UIAlertAction.Style.default, handler: nil))
+        ac.addAction(UIAlertAction(title: firstBtnTitle, style: firstIsDestructive ? .destructive : .default, handler: { action in
+            completion(true)
+        }))
+        
+        ac.addAction(UIAlertAction(title: secondBtnTitle, style: .default, handler: { action in
+            completion(false)
+        }))
+        
+        if self.view != nil {
+            DispatchQueue.main.async {
+                self.present(ac, animated: true, completion: nil)
+            }
+        }
+    }//end method
+    
+}//end extension
