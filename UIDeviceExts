@@ -1,0 +1,26 @@
+extension UIDevice {
+    var isSimulator: Bool {
+        #if IOS_SIMULATOR
+        return true
+        #else
+        return false
+        #endif
+    }
+}
+
+
+
+
+
+extension UIDevice {
+    var hasBottomNotch: Bool {
+        let bottom = UIApplication.shared.windows.first?.safeAreaInsets.bottom ?? 0
+        return bottom > 0
+    }
+    
+    var hasTopNotch: Bool {
+        let bottom = UIApplication.shared.windows.first?.safeAreaInsets.top ?? 0
+        return bottom > 0
+    }
+    
+}//end extension
