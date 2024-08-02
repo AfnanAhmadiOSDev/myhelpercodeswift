@@ -1,0 +1,50 @@
+import UIKit
+
+
+extension UIViewController {
+    func addKeyboardHideGesture(excludedViews: [UIView]) {
+        self.view.addKeyboardHideGesture(excludedViews: excludedViews)
+    }//end method
+    
+}//end extension
+
+
+extension UIView {
+    func addKeyboardHideGesture(excludedViews: [UIView]) {
+        let myGesture: MyTapGesture = .init(excludedViews_: excludedViews, target: self, action: #selector(handleMyGesture_tap))
+        myGesture.cancelsTouchesInView = false
+        self.addGestureRecognizer(myGesture)
+    }//end method
+    
+    @objc func handleMyGesture_tap(_ gesture: MyTapGesture) {
+        //print(#function)
+        
+        var isTouchInExcludedVi: Bool = false
+        
+        for vi in gesture.excludedViews {
+            let hitVi = vi.hitTest(gesture.location(in: vi), with: nil)
+            if hitVi == vi {
+                print("is in sub vi")
+                isTouchInExcludedVi = true
+                break
+            }
+        }
+        
+        if !isTouchInExcludedVi {
+            self.endEditing(true)
+        }
+    }//end method
+    
+}//end extension
+
+class MyTapGesture: UITapGestureRecognizer {
+    
+    var excludedViews: [UIView] = [UIView]()
+    
+    init(excludedViews_: [UIView], target: Any?, action: Selector?) {
+        super.init(target: target, action: action)
+        
+        self.excludedViews = excludedViews_
+    }//end method
+    
+}//end class
