@@ -367,15 +367,12 @@ extension String {
     
     //A function that checks if a string has any numbers
     func hasOnlyNumbers() -> Bool {
-        var myFlag: Bool = false
         for character in self {
-            if character.isNumber{
-                myFlag = true
-            } else {
-                myFlag = false
+            if !character.isNumber{
+                return false
             }
         }
-        return myFlag
+        return true
     }//end method
     
     //A function that checks if a string has any numbers and dot (.)
